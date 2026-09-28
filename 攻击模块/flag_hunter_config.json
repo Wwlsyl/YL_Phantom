@@ -1,0 +1,23 @@
+{
+  "ip": "",
+  "self_ip": "",
+  "shell_url": "/web/shell.php",
+  "shell_pass": "cmd",
+  "port": "80",
+  "https": false,
+  "timeout": "5",
+  "cmds": "cat /flag\ncat /flag.txt\ncat /root/flag\nenv 2>/dev/null | grep -i flag\ntype flag.txt",
+  "submit_url": "",
+  "token": "",
+  "no_submit": false,
+  "interval": "30",
+  "threads": "50",
+  "use_rsa": false,
+  "use_mix": false,
+  "fake_count": "8",
+  "rsa_agent": "",
+  "use_creep": true,
+  "creep_pass": "cmd",
+  "creep_path": "/.creep.php",
+  "use_deep": false
+}

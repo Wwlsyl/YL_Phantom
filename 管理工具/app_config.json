@@ -1,0 +1,46 @@
+{
+  "monitor": {
+    "url": "http://111:80/target_monitor.php",
+    "password": "cmd"
+  },
+  "flag": {
+    "ip": "",
+    "self_ip": "",
+    "shell_url": "/web/shell.php",
+    "shell_pass": "cmd",
+    "port": "80",
+    "https": false,
+    "timeout": "5",
+    "cmds": "cat /flag\ncat /flag.txt\ncat /root/flag\nenv 2>/dev/null | grep -i flag\ntype flag.txt",
+    "submit_url": "",
+    "token": "",
+    "no_submit": false,
+    "interval": "30",
+    "threads": "50",
+    "use_rsa": false,
+    "use_mix": false,
+    "fake_count": "8",
+    "rsa_agent": "",
+    "use_creep": true,
+    "creep_pass": "cmd",
+    "creep_path": "/.creep.php",
+    "use_deep": false
+  },
+  "waf": {
+    "shell_url": "/web/shell.php",
+    "shell_pass": "bbabcbadfb3f87809d558b418015fa21",
+    "port": 80,
+    "https": false,
+    "threads": 20,
+    "timeout": 10,
+    "retry": 2,
+    "conn_mode": "webshell",
+    "ssh_host": "124.220.39.138",
+    "ssh_port": "2204",
+    "ssh_user": "ctf",
+    "ssh_pass": "bbabcbadfb3f87809d558b418015fa21",
+    "ssh_webdir": "/var/www/html",
+    "strength": "严格",
+    "whitelist": ""
+  }
+}

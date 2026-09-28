@@ -1,0 +1,231 @@
+{
+  "version": "1.0",
+  "language": ["php","python","java","nodejs","go"],
+  "vulnerabilities": [
+    {
+      "id": "php-sqli",
+      "name": "SQL注入",
+      "lang": "php",
+      "dangerous_funcs": ["mysqli_query","mysql_query","mysqli::query","PDO::query","pg_query","sqlsrv_query","db_query","$this->db->query"],
+      "pattern": "(?:mysqli_query|mysql_query|PDO::query|pg_query|sqlsrv_query)\\s*\\([^)]*\\$_(?:GET|POST|REQUEST|COOKIE|SERVER)",
+      "severity": "critical",
+      "fix": {
+        "fast": "用 mysqli_real_escape_string 包裹输入",
+        "secure": "改用参数化查询(Prepared Statement)",
+        "code_fast": "function safe_input($v){return \\\"'\\\".mysqli_real_escape_string(\\\\$GLOBALS['conn'],\\\\$v).\\\"'\\\";}",
+        "code_secure": "\\\\$stmt = \\\\$conn->prepare(\\\"SELECT * FROM users WHERE id = ?\\\");\\n\\\\$stmt->bind_param(\\\"i\\\", \\\\$_GET['id']);\\n\\\\$stmt->execute();",
+        "waf_rule": "id:\\\\s*[\\\"\\\\'].*\\b(union|select|insert|drop|update|delete|or\\\\s+1=1)\\b"
+      }
+    },
+    {
+      "id": "php-rce",
+      "name": "命令执行/RCE",
+      "lang": "php",
+      "dangerous_funcs": ["system","exec","shell_exec","passthru","popen","proc_open","eval","assert","create_function","preg_replace","call_user_func","call_user_func_array"],
+      "pattern": "(?:system|exec|shell_exec|passthru|popen|proc_open)\\s*\\([^)]*\\$_",
+      "severity": "critical",
+      "fix": {
+        "fast": "用 escapeshellcmd/escapeshellarg 过滤",
+        "secure": "禁用危险函数+白名单验证",
+        "code_fast": "\\\\$cmd = escapeshellcmd(\\\\$_GET['cmd']);",
+        "code_secure": "\\\\$whitelist = ['ls','whoami','pwd']; if(in_array(\\\\$_GET['cmd'],\\\\$whitelist)){ system(\\\\$_GET['cmd']); }",
+        "waf_rule": "cmd|exec|action\\\\s*=\\\\s*[\\\"\\\\'].*(?:system|exec|shell_exec|passthru)"
+      }
+    },
+    {
+      "id": "php-eval",
+      "name": "代码执行(eval/assert)",
+      "lang": "php",
+      "dangerous_funcs": ["eval","assert","create_function","call_user_func","call_user_func_array","array_map","array_filter","usort","uksort"],
+      "pattern": "(?:eval|assert)\\s*\\(\\s*\\$_(?:GET|POST|REQUEST)",
+      "severity": "critical",
+      "fix": {
+        "fast": "直接删除该行",
+        "secure": "移除 eval/assert，改用安全逻辑",
+        "code_fast": "// DELETE eval line",
+        "code_secure": "// 重构代码，避免动态代码执行",
+        "waf_rule": "eval\\\\s*\\\\(|assert\\\\s*\\\\(|create_function\\\\s*\\\\("
+      }
+    },
+    {
+      "id": "php-file-upload",
+      "name": "文件上传漏洞",
+      "lang": "php",
+      "dangerous_funcs": ["move_uploaded_file","copy","file_put_contents","fwrite","fputs","rename"],
+      "pattern": "move_uploaded_file\\s*\\([^)]*\\$_(?:FILES|GET|POST|REQUEST)",
+      "severity": "high",
+      "fix": {
+        "fast": "增加文件类型白名单+后缀检查",
+        "secure": "白名单+重命名+内容检测",
+        "code_fast": "\\\\$allow = ['jpg','png','gif','txt']; \\\\$ext = strtolower(pathinfo(\\\\$_FILES['file']['name'], PATHINFO_EXTENSION)); if(!in_array(\\\\$ext, \\\\$allow)) die('denied');",
+        "code_secure": "\\\\$ext = strtolower(pathinfo(\\\\$_FILES['file']['name'], PATHINFO_EXTENSION));\\n\\\\$new_name = md5(time().\\\\$_FILES['file']['name']).'.'.\\\\$ext;\\nmove_uploaded_file(\\\\$_FILES['file']['tmp_name'], 'uploads/'.\\\\$new_name);",
+        "waf_rule": "Content-Disposition.*\\\\.(php|phtml|php3|php4|php5|asp|aspx|jsp|war|cgi|pl|sh)"
+      }
+    },
+    {
+      "id": "php-lfi",
+      "name": "文件包含/路径穿越",
+      "lang": "php",
+      "dangerous_funcs": ["include","include_once","require","require_once","file_get_contents","file_put_contents","readfile","fopen","fgets","fread","file"],
+      "pattern": "(?:include|require|file_get_contents)\\s*\\([^)]*\\$_",
+      "severity": "high",
+      "fix": {
+        "fast": "用 basename + 白名单过滤路径",
+        "secure": "白名单映射，禁止用户控制路径",
+        "code_fast": "\\\\$page = basename(\\\\$_GET['page']); include('pages/'.\\\\$page);",
+        "code_secure": "\\\\$whitelist = ['home','about','contact']; \\\\$page = \\\\$_GET['page'] ?? 'home'; if(in_array(\\\\$page, \\\\$whitelist)){ include('pages/'.\\\\$page.'.php'); } else { include('pages/home.php'); }",
+        "waf_rule": "page|file|path|include\\\\s*=\\\\s*[\\\"\\\\']*(?:\\\\.\\\\.|/etc|/proc|/var|php://|data://)"
+      }
+    },
+    {
+      "id": "php-xss",
+      "name": "反射型XSS",
+      "lang": "php",
+      "dangerous_funcs": ["echo","print","printf","sprintf"],
+      "pattern": "echo\\s+[^;]*\\$_(?:GET|POST|REQUEST|COOKIE)",
+      "severity": "medium",
+      "fix": {
+        "fast": "用 htmlspecialchars 包裹输出",
+        "secure": "模板引擎自动转义+Content-Security-Policy",
+        "code_fast": "echo htmlspecialchars(\\\\$_GET['name'], ENT_QUOTES, 'UTF-8');",
+        "code_secure": "\\\\$name = htmlspecialchars(\\\\$_GET['name'] ?? '', ENT_QUOTES, 'UTF-8'); echo \\\\$name;",
+        "waf_rule": "<script|<img|<svg|onerror=|onload=|javascript:"
+      }
+    },
+    {
+      "id": "php-ssrf",
+      "name": "SSRF服务端请求伪造",
+      "lang": "php",
+      "dangerous_funcs": ["curl_exec","curl_init","file_get_contents","fopen","fsockopen","get_headers"],
+      "pattern": "(?:curl_exec|file_get_contents)\\s*\\([^)]*\\$_",
+      "severity": "high",
+      "fix": {
+        "fast": "限制请求目标为白名单域名",
+        "secure": "URL白名单+禁止内网IP",
+        "code_fast": "\\\\$url = parse_url(\\\\$_GET['url']); \\\\$host = \\\\$url['host']; if(\\\\$host !== 'api.example.com') die('denied');",
+        "code_secure": "\\\\$whitelist = ['api.example.com','cdn.example.com']; \\\\$host = parse_url(\\\\$_GET['url'], PHP_URL_HOST); if(!in_array(\\\\$host, \\\\$whitelist)) die('denied');",
+        "waf_rule": "url\\\\s*=\\\\s*[\\\"\\\\']*(?:http:|https:)?(?:10\\\\.|172\\\\.|192\\\\.168|127\\\\.0\\\\.0|localhost|metadata)"
+      }
+    },
+    {
+      "id": "php-ssti",
+      "name": "服务端模板注入(SSTI)",
+      "lang": "php",
+      "dangerous_funcs": ["preg_replace","str_replace","sprintf"],
+      "pattern": "preg_replace\\s*\\(\\s*[\"'\/].*e[\"'\/]",
+      "severity": "critical",
+      "fix": {
+        "fast": "移除 /e 修饰符，改用 preg_replace_callback",
+        "secure": "彻底替换为 preg_replace_callback",
+        "code_fast": "// 替换 preg_replace('/pattern/e', ...) 为 preg_replace_callback('/pattern/', function(\\\\$m){ return eval_replace(\\\\$m[1]); }, \\\\$subject);",
+        "code_secure": "用 preg_replace_callback 替代所有 preg_replace /e 用法",
+        "waf_rule": "preg_replace\\\\s*\\\\(\\\\s*[\"'\\/].*[eE][\"'\\/]"
+      }
+    },
+    {
+      "id": "php-deserial",
+      "name": "反序列化漏洞",
+      "lang": "php",
+      "dangerous_funcs": ["unserialize","__destruct","__wakeup","__toString"],
+      "pattern": "unserialize\\s*\\([^)]*\\$_",
+      "severity": "critical",
+      "fix": {
+        "fast": "禁止用户输入直接反序列化",
+        "secure": "用 json_encode/json_decode 替代",
+        "code_fast": "// 改用 json_decode 替代 unserialize",
+        "code_secure": "\\\\$data = json_decode(\\\\$_GET['data'], true); if(json_last_error() !== JSON_ERROR_NONE) die('invalid data');",
+        "waf_rule": "data\\\\s*=\\\\s*[\\\"\\\\']*Tzpo[2-9]:|data\\\\s*=\\\\s*[\\\"\\\\']*O:[0-9]:"
+      }
+    },
+    {
+      "id": "php-ido",
+      "name": "IDOR/越权",
+      "lang": "php",
+      "dangerous_funcs": ["\\$_(GET|POST|REQUEST)"],
+      "pattern": "WHERE\\s+\\w+\\s*=\\s*\\$_",
+      "severity": "high",
+      "fix": {
+        "fast": "判断当前用户是否有权访问该资源",
+        "secure": "绑定当前用户ID到查询中",
+        "code_fast": "\\\\$uid = \\\\$_SESSION['user_id']; \\\\$pid = (int)\\\\$_GET['id']; \\\\$result = \\\\$conn->query(\"SELECT * FROM posts WHERE id=\\\\$pid AND user_id=\\\\$uid\");",
+        "code_secure": "查询条件中必须包含 user_id = 当前用户",
+        "waf_rule": ""
+      }
+    },
+    {
+      "id": "python-rce",
+      "name": "Python 命令执行",
+      "lang": "python",
+      "dangerous_funcs": ["os.system","os.popen","subprocess.call","subprocess.Popen","eval","exec","compile","__import__"],
+      "pattern": "(?:os\\\\.system|subprocess\\\\.call|subprocess\\\\.Popen|eval|exec)\\s*\\(",
+      "severity": "critical",
+      "fix": {
+        "fast": "用 shlex.quote 过滤shell参数",
+        "secure": "用 subprocess.run 传参数列表而非字符串",
+        "code_fast": "import shlex; cmd = 'ls -la ' + shlex.quote(user_input); os.system(cmd)",
+        "code_secure": "subprocess.run(['ls', '-la', user_input], check=True)",
+        "waf_rule": ""
+      }
+    },
+    {
+      "id": "python-ssti",
+      "name": "Python SSTI",
+      "lang": "python",
+      "dangerous_funcs": ["render_template_string","render_template","Template","Environment"],
+      "pattern": "render_template_string\\s*\\([^)]*request",
+      "severity": "critical",
+      "fix": {
+        "fast": "禁止用户输入直接传入模板",
+        "secure": "用固定模板+参数传递",
+        "code_fast": "return render_template_string('Hello {{ name }}', name=request.args.get('name'))",
+        "code_secure": "使用 render_template 而非 render_template_string",
+        "waf_rule": ""
+      }
+    },
+    {
+      "id": "python-sqli",
+      "name": "Python SQL注入",
+      "lang": "python",
+      "dangerous_funcs": ["execute","executemany","cursor.execute","rawsql"],
+      "pattern": "execute\\s*\\(\\s*f[\"']|\\%s\\s*%\\s*\\(|\\.format\\(.*request|f['\"]\\{.*request",
+      "severity": "critical",
+      "fix": {
+        "fast": "用参数化查询",
+        "secure": "始终使用 ? 占位符传参",
+        "code_fast": "cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
+        "code_secure": "永远用参数化查询，禁止字符串拼接 SQL",
+        "waf_rule": ""
+      }
+    },
+    {
+      "id": "java-rce",
+      "name": "Java 命令执行",
+      "lang": "java",
+      "dangerous_funcs": ["Runtime.getRuntime().exec","ProcessBuilder","ProcessImpl"],
+      "pattern": "Runtime\\s*\\.\\s*getRuntime\\s*\\(\\)\\s*\\.\\s*exec",
+      "severity": "critical",
+      "fix": {
+        "fast": "禁止用户输入直接传入命令",
+        "secure": "白名单命令+参数校验",
+        "code_fast": "ProcessBuilder pb = new ProcessBuilder(\"ls\", \"-la\", filename);",
+        "code_secure": "对 filename 做合法性校验，禁止特殊字符",
+        "waf_rule": ""
+      }
+    },
+    {
+      "id": "php-ini-danger",
+      "name": "PHP危险配置",
+      "lang": "php",
+      "dangerous_funcs": [],
+      "pattern": "ini_set\\s*\\(\\s*['\"]",
+      "severity": "high",
+      "fix": {
+        "fast": "检查并修复危险配置项",
+        "secure": "禁用危险函数+关闭错误显示",
+        "code_fast": "ini_set('display_errors', 0); ini_set('allow_url_include', 0);",
+        "code_secure": "在 php.ini 中禁用: disable_functions = exec,system,passthru,shell_exec,proc_open,popen",
+        "waf_rule": ""
+      }
+    }
+  ]
+}

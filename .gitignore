@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# PyInstaller 构建产物
+build/
+dist/
+*.spec
+YL_Phantom.exe
+
+# 密钥与配置（运行时自动生成）
+rsa_keys.json
+管理工具/waf_key.txt

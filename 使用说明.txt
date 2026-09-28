@@ -1,0 +1,40 @@
+YL_Phantom v2.0 — 完整包（exe + 源码）
+========================================
+
+▎运行
+  YL_Phantom.exe  直接双击运行（免 Python 环境）
+
+▎目录说明
+  YL_Phantom.exe      成品程序（打包 main_work.py）
+  main_work.py        主程序源码（GUI 入口，改动后需重新打包）
+  main.py             备用入口源码
+  dashboard.py        面板辅助源码
+  build_work.py       打包脚本（用 main_work.py 打包）
+  build_exe.py        备用打包脚本
+  rsa_keys.json       授权密钥对（勿外泄/勿改动）
+  README.txt          原版说明
+
+  上传靶机\           部署到靶机的 WAF/监控/蠕虫等 PHP 文件
+     waf_strong.php      WAF 拦截引擎（密钥为占位符，部署时自动注入）
+     waf_ban.php         IP 黑名单 CLI 管理
+     .waf.dat.php        运行配置（随机密钥签名 + 随机管理密码）
+     target_monitor.php  靶机监控页
+     watchdog.php/.sh    文件/连接监控
+     .creep.php/.creep.dat 蠕虫通道
+     tinyfilemanager.php  文件管理
+
+  攻击模块\           攻击相关 python 模块源码
+  防御模块\           防御/修复模块源码
+  管理工具\           运行配置（app_config.json 等）+ waf_key.txt 随机密钥
+
+▎重新打包
+  python build_work.py
+  输出：dist\YL_Phantom.exe，覆盖本包根目录的 YL_Phantom.exe 即可。
+
+▎WAF 密钥说明
+  管理工具\waf_key.txt 是 WAF 签名密钥（部署时随机注入 waf_strong.php）。
+  首次运行 exe 若缺失会自动生成。切勿把该文件发给他人。
+
+▎发粉丝版注意
+  若只发 exe，仅需 YL_Phantom.exe + 管理工具\ + 攻击模块\ + 防御模块\。
+  本完整包含源码，供二次开发。

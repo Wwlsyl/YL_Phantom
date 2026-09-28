@@ -1,0 +1,36 @@
+
+[2026-09-03 20:10:36] tk callback
+Traceback (most recent call last):
+  File "tkinter\__init__.py", line 2100, in __call__
+  File "main_work.py", line 273, in do_it
+  File "main_work.py", line 4730, in _run_workflow
+UnboundLocalError: cannot access local variable '_run' where it is not associated with a value
+
+[2026-09-03 20:12:35] tk callback
+Traceback (most recent call last):
+  File "tkinter\__init__.py", line 2100, in __call__
+  File "main_work.py", line 273, in do_it
+    on_deploy(vals)
+    ~~~~~~~~~^^^^^^
+  File "main_work.py", line 4730, in _run_workflow
+    threading.Thread(target=_run, daemon=True).start()
+                            ^^^^
+UnboundLocalError: cannot access local variable '_run' where it is not associated with a value
+
+[2026-09-03 20:19:41] tk callback
+Traceback (most recent call last):
+  File "tkinter\__init__.py", line 2100, in __call__
+  File "tkinter\__init__.py", line 871, in callit
+  File "main_work.py", line 4853, in <lambda>
+    self.root.after(0, lambda: self.password.set(pwd) if hasattr(self.mon, 'password') else None)
+                               ^^^^^^^^^^^^^
+AttributeError: 'AWDToolkit' object has no attribute 'password'
+
+[2026-09-03 20:32:18] tk callback
+Traceback (most recent call last):
+  File "tkinter\__init__.py", line 2100, in __call__
+  File "tkinter\__init__.py", line 871, in callit
+  File "main_work.py", line 4854, in <lambda>
+    self.root.after(0, lambda: self.password.set(pwd) if hasattr(self.mon, 'password') else None)
+                               ^^^^^^^^^^^^^
+AttributeError: 'AWDToolkit' object has no attribute 'password'

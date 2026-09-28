@@ -1,0 +1,9 @@
+{
+  "shell_url": "/shell.php",
+  "shell_pass": "yll666",
+  "port": 80,
+  "https": false,
+  "threads": 20,
+  "timeout": 10,
+  "retry": 2
+}

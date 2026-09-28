@@ -1,0 +1,9 @@
+{
+  "ip": "111",
+  "port": 80,
+  "https": true,
+  "shell_url": "/web/shell.php",
+  "shell_pass": "cmd",
+  "password": "pass",
+  "web_root": "/var/www/html"
+}
