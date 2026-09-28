@@ -1,6 +1,6 @@
 YL Phantom — AWD 混淆流量 + RSA加密攻击工具包
 =================================================
-by Wwlsyl | 勿忘历史
+by Wwlsyl 
 
 文件说明:
   rsa_crypto.py         Python RSA加解密模块 (密钥自动生成在 rsa_keys.json)
