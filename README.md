@@ -131,6 +131,6 @@ sequenceDiagram
 <div align="center">
 
 
-**YL Phantom** — 勿忘历史
+**YL Phantom**
 
 </div>
